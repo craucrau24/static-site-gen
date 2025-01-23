@@ -22,3 +22,6 @@ class TestHTMLNode(unittest.TestCase):
 
         node = HTMLNode("span", "this is a text", None, {"display": "inline-block", "margin": "10px"})
         self.assertEqual(node.props_to_html(), ' display="inline-block" margin="10px" ')
+
+        node = HTMLNode("span", "this is a text", None, None)
+        self.assertEqual(node.props_to_html(), "")
