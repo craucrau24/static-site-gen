@@ -3,6 +3,7 @@ from data.textnode import TextNode, TextType
 
 from functools import reduce
 from operator import add
+import re
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
@@ -70,3 +71,11 @@ def split_node_delimiter(node, delimiter, text_type):
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return list(reduce(add, map(lambda n: split_node_delimiter(n, delimiter, text_type), old_nodes)))
+
+def extract_markdown_images(text):
+    regex = r"!\[(.*?)\]\((.*?)\)"
+    return  re.findall(regex, text)
+
+def extract_markdown_links(text):
+    regex = r"(?<!!)\[(.*?)\]\((.*?)\)"
+    return  re.findall(regex, text)
