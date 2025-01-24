@@ -52,10 +52,18 @@ def strip_empty_node(nodes, ttype):
     return nodes[start:end]
 
 def split_node_delimiter(node, delimiter, text_type):
-    return [TextNode("This is text with a ", TextType.TEXT),
-            TextNode("code block", TextType.CODE),
-            TextNode(" word", TextType.TEXT),
-        ]
+    parts = node.text.split(delimiter)
+    types = [node.text_type, text_type]
+
+    def append_node(acc, txt):
+        ttype = types.pop(0)
+        types.append(ttype)
+        acc.append(TextNode(txt, ttype))
+
+        return acc
+
+    return list(reduce(append_node, parts, []))
+
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return list(reduce(add, map(lambda n: split_node_delimiter(n, delimiter, text_type), old_nodes)))

@@ -144,6 +144,10 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         self.helper_test_single_with_func(split_node)
 
 
+    def test_node_single_ko(self):
+        node = TextNode("This is text with a *italic word*", TextType.ITALIC)
+        with self.assertRaisesRegex(ValueError, "cannot split text node with the same text type"):
+            split_node_delimiter(node, "*", TextType.ITALIC)
 
     
     @unittest.skip("not implemented at the moment")
