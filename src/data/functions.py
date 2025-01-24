@@ -52,6 +52,9 @@ def strip_empty_node(nodes, ttype):
     return nodes[start:end]
 
 def split_node_delimiter(node, delimiter, text_type):
+    if node.text_type == text_type:
+        raise ValueError("cannot split text node with the same text type")
+
     parts = node.text.split(delimiter)
     types = [node.text_type, text_type]
 
@@ -62,7 +65,7 @@ def split_node_delimiter(node, delimiter, text_type):
 
         return acc
 
-    return list(reduce(append_node, parts, []))
+    return strip_empty_node(list(reduce(append_node, parts, [])), text_type)
 
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):

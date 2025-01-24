@@ -77,7 +77,7 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         node = TextNode("This is text with a *italic word*", TextType.TEXT)
         nodes = func(node, "*", TextType.ITALIC)
         self.helper_test_node_list(nodes, [
-            ("This is bold text with a ", TextType.TEXT),
+            ("This is text with a ", TextType.TEXT),
             ("italic word", TextType.ITALIC),
         ])
 
@@ -85,19 +85,19 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         nodes = func(node, "**", TextType.BOLD)
         self.helper_test_node_list(nodes, [
             ("Bold text", TextType.BOLD),
-            (" in a code block", TextType.TEXT),
+            (" in a regular text", TextType.TEXT),
         ])
 
-        node = TextNode("There is **Bold text** next to *italic words*", TextType.TEXT)
-        nodes = func(node, "**", TextType.BOLD)
+        node = TextNode("There is `code block` next to *italic words*", TextType.TEXT)
+        nodes = func(node, "`", TextType.CODE)
         self.helper_test_node_list(nodes, [
             ("There is ", TextType.TEXT),
-            ("Bold text", TextType.BOLD),
+            ("code block", TextType.CODE),
             (" next to *italic words*", TextType.TEXT),
         ])
         nodes = func(node, "*", TextType.ITALIC)
         self.helper_test_node_list(nodes, [
-            ("There is **Bold text** next to ", TextType.TEXT),
+            ("There is `code block` next to ", TextType.TEXT),
             ("italic words", TextType.ITALIC),
         ])
 
@@ -138,7 +138,6 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         split_nodes = lambda n, d, tt: split_nodes_delimiter([n], d, tt)
         self.helper_test_single_with_func(split_nodes)
 
-    @unittest.skip("not implemented at the moment")
     def test_node_single(self):
         split_node = lambda n, d, tt: split_node_delimiter(n, d, tt)
         self.helper_test_single_with_func(split_node)
