@@ -1,5 +1,5 @@
 import unittest
-from htmlnode import ParentNode, LeafNode
+from data.htmlnode import ParentNode, LeafNode
 
 class TestParentNode(unittest.TestCase):
     def test_to_html(self):
