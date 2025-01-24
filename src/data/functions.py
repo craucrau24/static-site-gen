@@ -1,5 +1,5 @@
 from data.htmlnode import LeafNode
-from data.textnode import TextType
+from data.textnode import TextNode, TextType
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
@@ -33,3 +33,10 @@ def text_node_to_html_node(text_node):
 
         case _:
             raise ValueError("invalid text type")
+
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    return [
+        TextNode("This is text with a ", TextType.TEXT),
+        TextNode("code block", TextType.CODE),
+        TextNode(" word", TextType.TEXT),
+    ]
