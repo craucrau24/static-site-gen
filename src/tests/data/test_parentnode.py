@@ -42,14 +42,14 @@ class TestParentNode(unittest.TestCase):
 
 
     def test_to_html_ko(self):
-        with self.assertRaises(ValueError, msg="ParentNode needs a tag"):
+        with self.assertRaisesRegex(ValueError, "ParentNode needs a tag"):
             node = ParentNode(None, [LeafNode(None, "foobar")])
             node.to_html()
 
-        with self.assertRaises(ValueError, msg="ParentNode needs at least one child"):
+        with self.assertRaisesRegex(ValueError, "ParentNode needs at least one child"):
             node = ParentNode("p", [])
             node.to_html()
 
-        with self.assertRaises(ValueError, msg="ParentNode needs at least one child"):
+        with self.assertRaisesRegex(ValueError, "ParentNode needs at least one child"):
             node = ParentNode("p", None)
             node.to_html()

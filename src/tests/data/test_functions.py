@@ -39,9 +39,19 @@ class TestTextToHTMLNode(unittest.TestCase):
         html = text_node_to_html_node(node)
         self.helper_test_leaf(html, "img", "", {"src": "http://foobar.com/baz.png", "alt": "this is an image"})
 
+        node = TextNode(None, TextType.IMAGE, "http://foobar.com/baz.png")
+        html = text_node_to_html_node(node)
+        self.helper_test_leaf(html, "img", "", {"src": "http://foobar.com/baz.png"})
+
     def test_convert_ko(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "invalid text type"):
             text_node_to_html_node(TextNode("empty text type", None))
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "invalid text type"):
             text_node_to_html_node(TextNode("wrong text type", "foobar"))
+
+        with self.assertRaisesRegex(ValueError, "link needs a target url"):
+            text_node_to_html_node(TextNode("link without url", TextType.LINK))
+
+        with self.assertRaisesRegex(ValueError, "image needs a source url"):
+            text_node_to_html_node(TextNode("image without url", TextType.IMAGE))
