@@ -19,11 +19,11 @@ class TestTextNode(unittest.TestCase):
         self.assertNotEqual(node, node2)
 
         node = TextNode("This is a text node", TextType.BOLD, "http://foobar.com")
-        node2 = TextNode("This is a text node", TextType.NORMAL, "http://foobar.com")
+        node2 = TextNode("This is a text node", TextType.TEXT, "http://foobar.com")
         self.assertNotEqual(node, node2)
 
-        node = TextNode("This is a text node", TextType.NORMAL, "http://foobar.com")
-        node2 = TextNode("This is not a text node", TextType.NORMAL, "http://foobar.com")
+        node = TextNode("This is a text node", TextType.TEXT, "http://foobar.com")
+        node2 = TextNode("This is not a text node", TextType.TEXT, "http://foobar.com")
         self.assertNotEqual(node, node2)
 
 
