@@ -133,7 +133,6 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         for ttype in (TextType.BOLD, TextType.CODE, TextType.ITALIC, TextType.TEXT):
             self.assertEqual(strip_empty_node(nodes, ttype), nodes)
 
-    @unittest.skip("not implemented at the moment")
     def test_nodes_single(self):
         split_nodes = lambda n, d, tt: split_nodes_delimiter([n], d, tt)
         self.helper_test_single_with_func(split_nodes)
@@ -149,26 +148,23 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             split_node_delimiter(node, "*", TextType.ITALIC)
 
     
-    @unittest.skip("not implemented at the moment")
     def test_multi(self):
-        text = "Begin with *italic* followed by `code block` and **bold** next to *italic* words"
         nodes = [
-            TextNode("Begin with *italic* followed by ", TextType.TEXT),
+            TextNode("Begin with **bold** followed by ", TextType.TEXT),
             TextNode("code block", TextType.CODE),
             TextNode(" and **bold** next to *italic* words", TextType.TEXT),
         ]
-        res = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+        res = split_nodes_delimiter(nodes, "**", TextType.BOLD)
         self.helper_test_node_list(res, [
             ("Begin with ", TextType.TEXT),
-            ("italic", TextType.ITALIC),
+            ("bold", TextType.BOLD),
             (" followed by ", TextType.TEXT),
             ("code block", TextType.CODE),
-            (" and **bold** next to ", TextType.TEXT),
-            ("italic", TextType.ITALIC),
-            ("words", TextType.TEXT),
+            (" and ", TextType.TEXT),
+            ("bold", TextType.BOLD),
+            (" next to *italic* words", TextType.TEXT),
         ])
 
-    @unittest.skip("not implemented at the moment")
     def test_multicall(self):
         node = TextNode("There is **Bold text** next to *italic words*", TextType.TEXT)
         nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
