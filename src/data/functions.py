@@ -2,9 +2,10 @@ from data.htmlnode import LeafNode
 from data.textnode import TextNode, TextType
 
 from functools import reduce
+from itertools import islice
 from operator import add
 import re
-from itertools import islice
+from string import Template
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
@@ -81,10 +82,34 @@ def extract_markdown_links(text):
     regex = r"(?<!!)\[(.*?)\]\((.*?)\)"
     return  re.findall(regex, text)
 
-def split_nodes_images(nodes):
-    return [
-            TextNode("This is text with a ", TextType.TEXT),
-            TextNode("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
-            TextNode(" and ", TextType.TEXT),
-            TextNode("obi wan", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
-    ]
+def make_split_nodes_link_node(extract_markdown, text_type, template_string):
+    template = Template(template_string)
+
+    def process(nodes, current=None):
+        if len(nodes) == 0:
+            return []
+        if current is None:
+            if nodes[0].text_type != TextType.TEXT:
+                return [nodes[0]] + process(nodes[1:])
+            current = extract_markdown(nodes[0].text), nodes[0].text
+        
+        md_items, remainder = current
+        if len(md_items) == 0:
+            if remainder != "":
+                head = [TextNode(remainder, TextType.TEXT)]
+            else:
+                head = []
+            return head + process(nodes[1:])
+
+        pattern = template.substitute(text=md_items[0][0], url=md_items[0][1])
+        head, tail = remainder.split(pattern, maxsplit=1)
+        if head != "":
+            head = [TextNode(head, TextType.TEXT)]
+        else:
+            head = []
+        head.append(TextNode(md_items[0][0], text_type, md_items[0][1]))
+        return head + process(nodes, (md_items[1:], tail))
+    return process
+
+split_nodes_images = make_split_nodes_link_node(extract_markdown_images, TextType.IMAGE, "![$text]($url)")
+split_nodes_links = make_split_nodes_link_node(extract_markdown_links, TextType.LINK, "[$text]($url)")

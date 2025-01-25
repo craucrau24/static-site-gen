@@ -1,7 +1,7 @@
 import unittest
 import re
 
-from data.functions import text_node_to_html_node, split_nodes_delimiter, split_node_delimiter, strip_empty_node, extract_markdown_images, extract_markdown_links, split_nodes_images
+from data.functions import text_node_to_html_node, split_nodes_delimiter, split_node_delimiter, strip_empty_node, extract_markdown_images, extract_markdown_links, split_nodes_images, split_nodes_links
 from data.textnode import TextNode, TextType
 from data.htmlnode import LeafNode
 
@@ -250,8 +250,78 @@ class TestExtractMarkdown(unittest.TestCase, MixinTestTextNodes):
             ("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
         ])
 
-    def test_split_nodes_images_ko(self):
+    def test_split_nodes_images_other_types(self):
         for ttype in [TextType.BOLD, TextType.CODE, TextType.ITALIC, TextType.IMAGE, TextType.LINK]:
             node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", ttype)
-            with self.assertRaises(ValueError):
-                split_nodes_images([node])
+            nodes = split_nodes_images([node])
+        self.helper_test_node_list(nodes, [
+            ("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", ttype)
+        ])
+
+        nodes = [
+            TextNode("This is a bold text", TextType.BOLD),
+            TextNode("![rick roll](https://i.imgur.com/aKaOqIh.gif) is a picture at beginning", TextType.TEXT),
+            TextNode("This is an unsupported italic text with embedded ![foobar](https://foobar.com/baz.jpeg) image", TextType.ITALIC),
+        ]
+        nodes = split_nodes_images(nodes)
+        self.helper_test_node_list(nodes, [
+            ("This is a bold text", TextType.BOLD),
+            ("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+            (" is a picture at beginning", TextType.TEXT),
+            ("This is an unsupported italic text with embedded ![foobar](https://foobar.com/baz.jpeg) image", TextType.ITALIC),
+        ])
+
+
+    def test_split_nodes_links(self):
+        node = TextNode("This is text with a [foobar](https://foobar.com/baz) and [to google](https://google.com)", TextType.TEXT)
+        nodes = split_nodes_links([node])
+        self.helper_test_node_list(nodes, [
+            ("This is text with a ", TextType.TEXT),
+            ("foobar", TextType.LINK, "https://foobar.com/baz"),
+            (" and ", TextType.TEXT),
+            ("to google", TextType.LINK, "https://google.com"),
+        ])
+
+        node = TextNode("This is text with a [foobar](https://foobar.com/baz), that's all folks!", TextType.TEXT)
+        nodes = split_nodes_links([node])
+        self.helper_test_node_list(nodes, [
+            ("This is text with a ", TextType.TEXT),
+            ("foobar", TextType.LINK, "https://foobar.com/baz"),
+            (", that's all folks!", TextType.TEXT),
+        ])
+
+        node = TextNode("[to google](https://google.com) is a link at beginning", TextType.TEXT)
+        nodes = split_nodes_links([node])
+        self.helper_test_node_list(nodes, [
+            ("to google", TextType.LINK, "https://google.com"),
+            (" is a link at beginning", TextType.TEXT),
+        ])
+
+        node = TextNode("Warning: link at end [to google](https://google.com)", TextType.TEXT)
+        nodes = split_nodes_links([node])
+        self.helper_test_node_list(nodes, [
+            ("Warning: link at end ", TextType.TEXT),
+            ("to google", TextType.LINK, "https://google.com"),
+        ])
+
+    def test_split_nodes_links_other_types(self):
+        for ttype in [TextType.BOLD, TextType.CODE, TextType.ITALIC, TextType.IMAGE, TextType.LINK]:
+            node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", ttype)
+            nodes = split_nodes_images([node])
+        self.helper_test_node_list(nodes, [
+            ("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", ttype)
+        ])
+
+        nodes = [
+            TextNode("This is a bold text", TextType.BOLD),
+            TextNode("![rick roll](https://i.imgur.com/aKaOqIh.gif) is a picture at beginning", TextType.TEXT),
+            TextNode("This is an unsupported italic text with embedded ![foobar](https://foobar.com/baz.jpeg) image", TextType.ITALIC),
+        ]
+        nodes = split_nodes_images(nodes)
+        self.helper_test_node_list(nodes, [
+            ("This is a bold text", TextType.BOLD),
+            ("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+            (" is a picture at beginning", TextType.TEXT),
+            ("This is an unsupported italic text with embedded ![foobar](https://foobar.com/baz.jpeg) image", TextType.ITALIC),
+        ])
+
