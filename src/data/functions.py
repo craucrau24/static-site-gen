@@ -81,31 +81,10 @@ def extract_markdown_links(text):
     regex = r"(?<!!)\[(.*?)\]\((.*?)\)"
     return  re.findall(regex, text)
 
-def split_result_mkparser(nb_groups, fn_inter, fn_match):
-    def fn_odd(splits):
-        txt = next(splits)
-        if txt != "":
-            fn_inter(txt)
-
-    def fn_even(splits):
-        args = list(islice(splits, 0, nb_groups))
-        if len(args) == 0:
-            raise StopIteration
-        fn_match(*args)
-
-    funcs = [fn_odd, fn_even]
-
-    def parser(splits):
-        it = iter(splits)
-        try:
-            while 1:
-                func = funcs.pop(0)
-                funcs.append(func)
-                func(it)
-        except StopIteration:
-            pass
-
-    return parser
-
-def imlink_to_text_node(imlink):
-    pass
+def split_nodes_images(nodes):
+    return [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("obi wan", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+    ]
