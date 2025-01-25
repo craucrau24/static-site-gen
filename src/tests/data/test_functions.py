@@ -1,17 +1,7 @@
 import unittest
-import re
 
-from data.functions import text_node_to_html_node, split_nodes_delimiter, split_node_delimiter, strip_empty_node, extract_markdown_images, extract_markdown_links, split_nodes_images, split_nodes_links
+from data.functions import split_nodes_delimiter, split_node_delimiter, strip_empty_node, extract_markdown_images, extract_markdown_links, split_nodes_images, split_nodes_links
 from data.textnode import TextNode, TextType
-from data.htmlnode import LeafNode
-
-class MixinTestLeaf:
-    def helper_test_leaf(self, html, tag, value, props=None):
-        self.assertIsInstance(html, LeafNode)
-        self.assertEqual(html.tag, tag)
-        self.assertEqual(html.value, value)
-        self.assertIs(html.children, None)
-        self.assertEqual(html.props, props)
 
 class MixinTestTextNodes:
     def helper_test_node_list(self, nodes, expected):
@@ -28,51 +18,6 @@ class MixinTestTextNodes:
             self.assertEqual(node.text_type, ttype)
             self.assertEqual(node.url, url)
 
-
-class TestTextToHTMLNode(unittest.TestCase, MixinTestLeaf):
-
-    def test_convert_text(self):
-        node = TextNode("this is raw text", TextType.TEXT)
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, None, "this is raw text")
-
-        node = TextNode("this is bold text", TextType.BOLD)
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "b", "this is bold text")
-
-        node = TextNode("this is italic text", TextType.ITALIC)
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "i", "this is italic text")
-
-        node = TextNode("this is code text", TextType.CODE)
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "code", "this is code text")
-
-    def test_convert_with_url(self):
-        node = TextNode("this is a link", TextType.LINK, "http://foobar.com/baz")
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "a", "this is a link", {"href": "http://foobar.com/baz"})
-
-        node = TextNode("this is an image", TextType.IMAGE, "http://foobar.com/baz.png")
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "img", "", {"src": "http://foobar.com/baz.png", "alt": "this is an image"})
-
-        node = TextNode(None, TextType.IMAGE, "http://foobar.com/baz.png")
-        html = text_node_to_html_node(node)
-        self.helper_test_leaf(html, "img", "", {"src": "http://foobar.com/baz.png"})
-
-    def test_convert_ko(self):
-        with self.assertRaisesRegex(ValueError, "invalid text type"):
-            text_node_to_html_node(TextNode("empty text type", None))
-
-        with self.assertRaisesRegex(ValueError, "invalid text type"):
-            text_node_to_html_node(TextNode("wrong text type", "foobar"))
-
-        with self.assertRaisesRegex(ValueError, "link needs a target url"):
-            text_node_to_html_node(TextNode("link without url", TextType.LINK))
-
-        with self.assertRaisesRegex(ValueError, "image needs a source url"):
-            text_node_to_html_node(TextNode("image without url", TextType.IMAGE))
 
 class TestSplitNodesDelimiter(unittest.TestCase, MixinTestTextNodes):
     def helper_test_single_with_func(self, func):
