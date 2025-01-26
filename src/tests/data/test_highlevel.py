@@ -1,8 +1,8 @@
 import unittest
 
 from data.textnode import TextNode, TextType
-from data.htmlnode import LeafNode
-from data.highlevel import text_to_textnodes, text_node_to_html_node
+from data.htmlnode import LeafNode, ParentNode
+from data.highlevel import text_to_textnodes, text_node_to_html_node, markdown_to_html_node
 from .test_functions import MixinTestTextNodes
 
 class MixinTestLeaf:
@@ -111,3 +111,78 @@ class TestTextToHTMLNode(unittest.TestCase, MixinTestLeaf):
 
         with self.assertRaisesRegex(ValueError, "image needs a source url"):
             text_node_to_html_node(TextNode("image without url", TextType.IMAGE))
+
+class TestMarkdownToHTMLNode(unittest.TestCase):
+    def test_ok(self):
+        text = "## This is a heading"
+        expected = ParentNode("div", [ParentNode("h2", [LeafNode(None, "This is a heading")])])
+        self.assertEqual(markdown_to_html_node(text), expected)
+
+        text = """# This is a heading
+
+        First paragraph with **bold text** and *italic* word
+        """
+        expected = ParentNode("div", [
+            ParentNode("h1", [LeafNode(None, "This is a heading")]),
+            ParentNode("p", [LeafNode(None, "First paragraph with "), LeafNode("b", "bold text"), LeafNode(None, " and "), LeafNode("i", "italic"), LeafNode(None, " word")])])
+        self.assertEqual(markdown_to_html_node(text), expected)
+
+        text = """# This is a heading
+
+        First paragraph with **bold text** and *italic* word
+
+        Second paragraph with `code sample`
+
+>I must say
+>I would be very impressed
+>if it works!
+
+        ## This is a second heading
+
+* First line
+* Second *line*
+
+        """
+        expected = ParentNode("div", [
+            ParentNode("h1", [LeafNode(None, "This is a heading")]),
+            ParentNode("p", [LeafNode(None, "First paragraph with "), LeafNode("b", "bold text"), LeafNode(None, " and "), LeafNode("i", "italic"), LeafNode(None, " word")]),
+            ParentNode("p", [LeafNode(None, "Second paragraph with "), LeafNode("code", "code sample")]),
+            ParentNode("blockquote", [LeafNode(None, "I must say\nIwould be very impressed\nif it works")]),
+            ParentNode("h2", [LeafNode(None, "This is a second heading")]),
+            ParentNode("ul", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("i", "line")])])
+        ])
+        self.assertEqual(markdown_to_html_node(text), expected)
+
+        text = """# This is a heading
+
+[link](https://foobar.com/baz)
+![image](https://foobar.com/baz.png)
+
+```
+def dummy_function():
+    print('Hello, world!')
+
+```
+
+        #### This is a second heading
+
+1. First line
+2. Second **line**
+
+        """
+        expected = ParentNode("div", [
+            ParentNode("h1", [LeafNode(None, "This is a heading")]),
+            ParentNode("p", [LeafNode("a", "link", {"href": "https://foobar.com/baz"}), LeafNode("img", "image", {"src": "https://foobar.com/baz.png"})]),
+            ParentNode("pre", [LeafNode("code", "\ndef dummy_function():\n    print('Hello, world!')\n")]),
+            ParentNode("h4", [LeafNode(None, "This is a second heading")]),
+            ParentNode("ol", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("b", "line")])])
+        ])
+        self.assertEqual(markdown_to_html_node(text), expected)
+
+    def test_illformed(self):
+        text = "####### toto\n\n* blabla\n- blibli"
+        expected = ParentNode("div", [
+            ParentNode("p", [LeafNode(None, "####### toto")]),
+            ParentNode("p", [LeafNode(None, "* blabla\n- blibli")]),
+        ])
+        self.assertEqual(markdown_to_html_node(text), expected)

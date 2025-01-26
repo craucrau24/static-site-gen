@@ -22,6 +22,14 @@ class HTMLNode:
 
     def __repr__(self):
         return f"HTMLNode({self.tag}, {self.value}, {self.children}, {self.props})"
+    
+    def __eq__(self, rhs):
+        return (
+            self.tag == rhs.tag and
+            self.value == rhs.value and
+            self.children == rhs.children and
+            self.props == rhs.props
+        )
 
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
