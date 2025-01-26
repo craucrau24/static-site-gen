@@ -3,6 +3,9 @@ import unittest
 from data.textnode import TextNode, TextType
 from data.htmlnode import LeafNode, ParentNode
 from data.highlevel import text_to_textnodes, text_node_to_html_node, markdown_to_html_node
+from data.highlevel import process_paragraph, process_heading, process_code, process_quote, process_ordered_list, process_unordered_list
+from data.blocks import block_to_block_type, BlockType
+
 from .test_functions import MixinTestTextNodes
 
 class MixinTestLeaf:
@@ -114,6 +117,7 @@ class TestTextToHTMLNode(unittest.TestCase, MixinTestLeaf):
 
 class TestMarkdownToHTMLNode(unittest.TestCase):
     def test_ok(self):
+        self.maxDiff = None
         text = "## This is a heading"
         expected = ParentNode("div", [ParentNode("h2", [LeafNode(None, "This is a heading")])])
         self.assertEqual(markdown_to_html_node(text), expected)
@@ -147,7 +151,7 @@ class TestMarkdownToHTMLNode(unittest.TestCase):
             ParentNode("h1", [LeafNode(None, "This is a heading")]),
             ParentNode("p", [LeafNode(None, "First paragraph with "), LeafNode("b", "bold text"), LeafNode(None, " and "), LeafNode("i", "italic"), LeafNode(None, " word")]),
             ParentNode("p", [LeafNode(None, "Second paragraph with "), LeafNode("code", "code sample")]),
-            ParentNode("blockquote", [LeafNode(None, "I must say\nIwould be very impressed\nif it works")]),
+            ParentNode("blockquote", [LeafNode(None, "I must say\nI would be very impressed\nif it works!")]),
             ParentNode("h2", [LeafNode(None, "This is a second heading")]),
             ParentNode("ul", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("i", "line")])])
         ])
@@ -161,7 +165,6 @@ class TestMarkdownToHTMLNode(unittest.TestCase):
 ```
 def dummy_function():
     print('Hello, world!')
-
 ```
 
         #### This is a second heading
@@ -172,7 +175,7 @@ def dummy_function():
         """
         expected = ParentNode("div", [
             ParentNode("h1", [LeafNode(None, "This is a heading")]),
-            ParentNode("p", [LeafNode("a", "link", {"href": "https://foobar.com/baz"}), LeafNode("img", "image", {"src": "https://foobar.com/baz.png"})]),
+            ParentNode("p", [LeafNode("a", "link", {"href": "https://foobar.com/baz"}), LeafNode("img", "", {"src": "https://foobar.com/baz.png", "alt": "image"})]),
             ParentNode("pre", [LeafNode("code", "\ndef dummy_function():\n    print('Hello, world!')\n")]),
             ParentNode("h4", [LeafNode(None, "This is a second heading")]),
             ParentNode("ol", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("b", "line")])])
@@ -186,3 +189,39 @@ def dummy_function():
             ParentNode("p", [LeafNode(None, "* blabla\n- blibli")]),
         ])
         self.assertEqual(markdown_to_html_node(text), expected)
+    
+    def test_process_paragraph(self):
+        text = "This is a text with **bold words** and *italic* word"
+        expected = ParentNode("p", [LeafNode(None, "This is a text with "), LeafNode("b", "bold words"), LeafNode(None, " and "), LeafNode("i", "italic"), LeafNode(None, " word")])
+        self.assertEqual(block_to_block_type(text), BlockType.PARAGRAPH)
+        self.assertEqual(process_paragraph(text), expected)
+
+    def test_process_quote(self):
+        text = ">I must say\n>I would be impressed\n>if it works"
+        expected = ParentNode("blockquote", [LeafNode(None, "I must say\nI would be impressed\nif it works")])
+        self.assertEqual(block_to_block_type(text), BlockType.QUOTE)
+        self.assertEqual(process_quote(text), expected)
+    
+    def test_process_heading(self):
+        text = "### This is a 3rd level heading"
+        expected = ParentNode("h3", [LeafNode(None, "This is a 3rd level heading")])
+        self.assertEqual(block_to_block_type(text), BlockType.HEADING)
+        self.assertEqual(process_heading(text), expected)
+    
+    def test_process_code(self):
+        text = "```\ndef dummy():\n    print('Dummy!')\n```"
+        expected = ParentNode("pre", [LeafNode("code", "\ndef dummy():\n    print('Dummy!')\n")])
+        self.assertEqual(block_to_block_type(text), BlockType.CODE)
+        self.assertEqual(process_code(text), expected)
+    
+    def test_process_unordered(self):
+        text = "- First line\n- Second **line**"
+        expected = ParentNode("ul", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("b", "line")])])
+        self.assertEqual(block_to_block_type(text), BlockType.UNORDERED_LIST)
+        self.assertEqual(process_unordered_list(text), expected)
+    
+    def test_process_ordered(self):
+        text = "1. First line\n2. Second **line**"
+        expected = ParentNode("ol", [ParentNode("li", [LeafNode(None, "First line")]), ParentNode("li", [LeafNode(None, "Second "), LeafNode("b", "line")])])
+        self.assertEqual(block_to_block_type(text), BlockType.ORDERED_LIST)
+        self.assertEqual(process_ordered_list(text), expected)

@@ -131,6 +131,24 @@ class TestSplitNodesDelimiter(unittest.TestCase, MixinTestTextNodes):
             ("italic words", TextType.ITALIC),
         ])
     
+    def test_illformed_bold_italic(self):
+        node = TextNode("There is **Bold text** next to illformed *italic words", TextType.TEXT)
+        nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+        self.helper_test_node_list(nodes, [
+            ("There is ", TextType.TEXT),
+            ("Bold text", TextType.BOLD),
+            (" next to illformed *italic words", TextType.TEXT),
+        ])
+
+        node = TextNode("There is *italic text* next to illformed *italic words", TextType.TEXT)
+        nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+        self.helper_test_node_list(nodes, [
+            ("There is ", TextType.TEXT),
+            ("italic text", TextType.ITALIC),
+            (" next to illformed *italic words", TextType.TEXT),
+        ])
 
 class TestExtractMarkdown(unittest.TestCase, MixinTestTextNodes):
     def test_extract_images(self):

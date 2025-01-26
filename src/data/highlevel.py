@@ -9,7 +9,7 @@ def text_to_textnodes(text):
     text_nodes = split_nodes_delimiter(text_nodes, "*", TextType.ITALIC)
     text_nodes = split_nodes_delimiter(text_nodes, "`", TextType.CODE)
     text_nodes = split_nodes_images(text_nodes)
-    return split_nodes_links(text_nodes)
+    return list(filter(lambda n: n.text.strip() != "", split_nodes_links(text_nodes)))
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
@@ -45,24 +45,24 @@ def text_node_to_html_node(text_node):
             raise ValueError("invalid text type")
 
 def process_paragraph(block):
-    return ParentNode("p",text_node_to_html_node(block) )
+    return ParentNode("p", list(map(text_node_to_html_node, text_to_textnodes(block) )))
 
 def process_heading(block):
     head, tail = block.split(" ", maxsplit=1)
-    return ParentNode(f"h{len(head)}", tail)
+    return ParentNode(f"h{len(head)}", [LeafNode(None, tail)])
 
 def process_code(block):
-    return ParentNode("pre", [ParentNode("code", [LeafNode(None, block[3:-3])])])
+    return ParentNode("pre", [LeafNode("code", block[3:-3])])
 
 def process_quote(block):
-    lines = "\n".join(map(lambda line: line[1], block.splitlines()))
-    return ParentNode("blockquote", lines)
+    lines = "\n".join(map(lambda line: line[1:], block.splitlines()))
+    return ParentNode("blockquote", [LeafNode(None, lines)])
 
 def process_list_data(block):
     lines = block.splitlines()
     return list(
         map(
-            lambda line: ParentNode("li", text_node_to_html_node(line.split(" ", maxsplit=1)[1])),
+            lambda line: ParentNode("li", list(map(text_node_to_html_node, text_to_textnodes(line.split(" ", maxsplit=1)[1])))),
             lines
         )
     )

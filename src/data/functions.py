@@ -29,14 +29,20 @@ def split_node_delimiter(node, delimiter, text_type):
     parts = node.text.split(delimiter)
     types = [node.text_type, text_type]
 
+    ttype = None
     def append_node(acc, txt):
+        nonlocal ttype
         ttype = types.pop(0)
         types.append(ttype)
         acc.append(TextNode(txt, ttype))
 
         return acc
 
-    return strip_empty_node(list(reduce(append_node, parts, [])), text_type)
+    result = list(reduce(append_node, parts, []))
+    if ttype is not None and ttype == text_type:
+        illformed = result.pop()
+        result[-1].text += delimiter + illformed.text
+    return strip_empty_node(result, text_type)
 
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
