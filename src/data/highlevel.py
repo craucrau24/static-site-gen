@@ -55,7 +55,7 @@ def process_code(block):
     return ParentNode("pre", [LeafNode("code", block[3:-3])])
 
 def process_quote(block):
-    lines = "\n".join(map(lambda line: line[1:], block.splitlines()))
+    lines = "\n".join(map(lambda line: line[1:].strip(), block.splitlines()))
     return ParentNode("blockquote", [LeafNode(None, lines)])
 
 def process_list_data(block):
