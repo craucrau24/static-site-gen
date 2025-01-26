@@ -1,9 +1,7 @@
-from data.textnode import TextNode, TextType
+from webgen.fs import copy_files
 
 def main():
-    node = TextNode("This is a text node", TextType.BOLD, "https://www.boot.dev")
-    print(node)
-
+    copy_files("static", "public")
 
 if __name__ == "__main__":
     main()
