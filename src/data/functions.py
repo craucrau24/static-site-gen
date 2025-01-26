@@ -8,9 +8,6 @@ import re
 
 from string import Template
 
-###########################################################
-####          INLINE ELEMENTS CONVERSION           ########
-###########################################################
 def strip_empty_node(nodes, ttype):
     if len(nodes) <= 1:
         return nodes
@@ -84,15 +81,3 @@ def make_split_nodes_link_node(extract_markdown, text_type, template_string):
 
 split_nodes_images = make_split_nodes_link_node(extract_markdown_images, TextType.IMAGE, "![$text]($url)")
 split_nodes_links = make_split_nodes_link_node(extract_markdown_links, TextType.LINK, "[$text]($url)")
-
-###########################################################
-####           BLOCK ELEMENTS CONVERSION           ########
-###########################################################
-
-def markdown_to_blocks(text):
-    blocks = text.split("\n\n")
-    return list(
-        filter(
-            lambda s: len(s) != 0,
-            map(lambda s: s.strip(), blocks)
-        ))
